@@ -1,9 +1,10 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, makeStyles, Paper, TextField } from '@material-ui/core';
 import MUIDataTable from 'mui-datatables';
-import React, { useState} from 'react';
+import React, { useEffect, useState} from 'react';
 import * as moment from 'moment';
 import {GetBooksByText} from '../../api/Books';
-import {GetSuggestedReturnDate} from '../../api/Transaction';
+import {GetSuggestedReturnDate, CreateBookTransaction} from '../../api/Transaction';
+import { Alert } from '@material-ui/lab';
 const useStyles = makeStyles((theme)=>({
     searchButton: {
         height: '100%'
@@ -11,11 +12,14 @@ const useStyles = makeStyles((theme)=>({
 }))
 const SearchBooks = () => {
     const [searchText, setSearchText] = useState('');
-    const [books, setBooks] = useState(null);
+    const [books, setBooks] = useState([]);
     const [openLendBookFormDialog, setOpenLendBookFormDialog] = useState(false);
 
     // Initally adding 30 days from now on using moment but this will be overwritten by /api/Transaction/GetSuggestedReturnDate 
     const [suggestedReturnDate,setSuggestedReturnDate] = useState(moment().add(1, 'M').format('YYYY-MM-DD')); 
+    const [selectedMemberId, setSelectedMemberId] = useState("");
+    const [selectedBookId, setSelectedBookId] = useState("");
+    const [lendBookError, setLendBookError] = useState(null);
     const classes = useStyles();
     const options = {
         selectableRows: 'none',
@@ -64,7 +68,7 @@ const SearchBooks = () => {
                 sort: false,
                 customBodyRender: (value, tableMeta, updateValue) => {
                     return (
-                      <Button disabled={Boolean(books[tableMeta.rowIndex]["count"]<1)} variant="outlined" color="primary" onClick={handleOpenLendBookFormDialog}>
+                      <Button disabled={Boolean(books[tableMeta.rowIndex]["count"]<1)} variant="outlined" color="primary" onClick={() => handleOpenLendBookFormDialog(books[tableMeta.rowIndex]["isbnId"])}>
                           Lend
                       </Button>
                     );
@@ -72,6 +76,14 @@ const SearchBooks = () => {
             }
         }
     ];
+    useEffect(() => {
+        GetSuggestedReturnDate().then((res)=>{
+            if(res.data.data !== null){
+                var formattedDate = moment(res.data.data.returnDate).format('YYYY-MM-DD');
+                setSuggestedReturnDate(formattedDate);
+            }
+        });
+    }, [])
     const fetchBooks = () => {
         GetBooksByText(searchText).then((res)=>{
             setBooks(res.data.dataList);
@@ -79,15 +91,36 @@ const SearchBooks = () => {
     }
     const handleCloseLendBookFormDialog = () => {
         setOpenLendBookFormDialog(false);
+        setSelectedMemberId("");
     }
-    const handleOpenLendBookFormDialog = () => {
+    const handleOpenLendBookFormDialog = (isbnId) => {
+        setSelectedBookId(isbnId);
         setOpenLendBookFormDialog(true);
-        GetSuggestedReturnDate().then((res)=>{
-            if(res.data.data !== null){
-                setSuggestedReturnDate(res.data.data.returnDate);
+    }
+    const handleChangeSelectedMemberId = (e) => {
+        setLendBookError(null);
+        const {value} = e.target;
+        setSelectedMemberId(value);
+    }
+    const handleCreateBookTransaction = () => {
+        CreateBookTransaction({
+            isbnId: selectedBookId,
+            memberId: selectedMemberId,
+            endDate: suggestedReturnDate
+        }).then((res)=>{
+            if(res.data.errorState === false){
+                fetchBooks();
+                handleCloseLendBookFormDialog();
+            }else{
+                setLendBookError(res.data.errorList[0].message)
             }
         });
     }
+    const handleKeyDown = (event) => {
+        if (event.key === 'Enter') {
+            fetchBooks(event);
+        }
+      }
     return(
         <>
         <Paper>
@@ -98,7 +131,9 @@ const SearchBooks = () => {
                         label="Search Text"
                         variant="filled"
                         value={searchText}
-                        onChange={ e => setSearchText(e.target.value) }/>
+                        onKeyDown={handleKeyDown}
+                        onChange={ e => setSearchText(e.target.value) }
+                        onSubmit={fetchBooks}/>
                 </Grid>
                 <Grid item xs={4}>
                 <Button 
@@ -122,16 +157,17 @@ const SearchBooks = () => {
             </Grid>
         </Paper>
         <Dialog open={openLendBookFormDialog} onClose={handleCloseLendBookFormDialog} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">Subscribe</DialogTitle>
+        <DialogTitle id="form-dialog-title">Lend Book</DialogTitle>
         <DialogContent>
           <DialogContentText>
             To lend this book to a member, please enter the return date and the ID of the member here.
           </DialogContentText>
           <TextField
-            autoFocus
             margin="dense"
             id="name"
             label="Member ID"
+            value={selectedMemberId}
+            onChange={handleChangeSelectedMemberId}
             type="username"
             fullWidth
           />
@@ -141,16 +177,18 @@ const SearchBooks = () => {
             type="date"
             defaultValue={suggestedReturnDate}
             className={classes.textField}
+            onChange={e => setSuggestedReturnDate(e.target.value)}
             InputLabelProps={{
             shrink: true,
             }}
         />
+        {lendBookError && <Alert severity="error">{lendBookError}</Alert>}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseLendBookFormDialog} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleCloseLendBookFormDialog} color="primary" variant="contained">
+          <Button onClick={handleCreateBookTransaction} color="primary" variant="contained">
             Lend
           </Button>
         </DialogActions>
