@@ -3,7 +3,7 @@ import MUIDataTable from 'mui-datatables';
 import React, { useEffect, useState} from 'react';
 import * as moment from 'moment';
 import {GetBooksByText} from '../../api/Books';
-import {GetSuggestedReturnDate, CreateBookTransaction} from '../../api/Transaction';
+import {GetSuggestedReturnDate, CreateBookTransaction} from '../../api/BookTransactions';
 import { Alert } from '@material-ui/lab';
 const useStyles = makeStyles((theme)=>({
     searchButton: {
@@ -77,6 +77,7 @@ const SearchBooks = () => {
         }
     ];
     useEffect(() => {
+        fetchBooks();
         GetSuggestedReturnDate().then((res)=>{
             if(res.data.data !== null){
                 var formattedDate = moment(res.data.data.returnDate).format('YYYY-MM-DD');
@@ -89,6 +90,7 @@ const SearchBooks = () => {
             setBooks(res.data.dataList);
         });
     }
+
     const handleCloseLendBookFormDialog = () => {
         setOpenLendBookFormDialog(false);
         setSelectedMemberId("");
@@ -168,7 +170,7 @@ const SearchBooks = () => {
             label="Member ID"
             value={selectedMemberId}
             onChange={handleChangeSelectedMemberId}
-            type="username"
+            type="number"
             fullWidth
           />
           <TextField
@@ -188,7 +190,7 @@ const SearchBooks = () => {
           <Button onClick={handleCloseLendBookFormDialog} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleCreateBookTransaction} color="primary" variant="contained">
+          <Button onClick={handleCreateBookTransaction} color="primary" variant="contained" disabled={selectedMemberId==""}>
             Lend
           </Button>
         </DialogActions>

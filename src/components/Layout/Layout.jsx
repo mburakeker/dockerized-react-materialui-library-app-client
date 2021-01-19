@@ -79,7 +79,7 @@ const useStyles = makeStyles((theme) => ({
 export default function Layout(props) {
   const classes = useStyles();
   const theme = useTheme();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const handleDrawerOpen = () => {
     setOpen(true);
   };

@@ -6,10 +6,10 @@ import { Link as RouterLink } from 'react-router-dom';
 import { Typography } from '@material-ui/core';
 const menus = [
     { label: "Book Search",     url: "search-books"     },
-    { label: "Save Books",      url: "manage-books"     },
-    { label: "Save Members",    url: "manage-members"   },
-    { label: "Book Transaction",url: "book-transaction" },
-    { label: "Daily Report",    url: "daily-report"     }
+    { label: "Manage Books",      url: "manage-books"     },
+    { label: "Manage Members",    url: "manage-members"   },
+    { label: "Book Transactions",url: "book-transactions" },
+    { label: "Daily Reports",    url: "daily-reports"     }
 ]
 const DrawerRouteButtons = () => {
   return (
