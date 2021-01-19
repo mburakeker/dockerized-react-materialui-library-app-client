@@ -15,6 +15,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import TopSection from './Sidebar/TopSection';
 import RouteButtons from './Sidebar/RouteButtons';
 import { Grid} from '@material-ui/core';
+import Theme from '../Theme/Theme';
 
 const drawerWidth = 350;
 const useStyles = makeStyles((theme) => ({
@@ -43,6 +44,7 @@ const useStyles = makeStyles((theme) => ({
     flexShrink: 0,
   },
   drawerPaper: {
+    background: '#2b3541',
     width: drawerWidth,
   },
   drawerHeader: {
@@ -87,6 +89,7 @@ export default function Layout(props) {
   };
 
   return (
+    <Theme>
       <div className={classes.root}>
         <CssBaseline />
         <AppBar
@@ -144,5 +147,6 @@ export default function Layout(props) {
           </div>
         </main>
       </div>
+      </Theme>
   )
 }

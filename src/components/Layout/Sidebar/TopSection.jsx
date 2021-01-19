@@ -9,13 +9,11 @@ const useStyles = makeStyles((theme) => ({
         height: '120px'
     },
     headerText: {
-        color: '#000',
         float: 'left',
         fontWeight: 'bolder',
         fontSize: theme.spacing(4)
     },
     headerSubtext: {
-        color: '#00000060',
         float: 'left',
         fontWeight: 'bolder',
         fontSize: theme.spacing(2),
@@ -30,12 +28,12 @@ const DrawerTopSection = () =>  {
         <ListItem className={classes.topSection}>
         </ListItem>
         <ListItem>
-            <Typography className={classes.headerText}component="h4">
+            <Typography color="secondary" className={classes.headerText} component="h4">
             Library
             </Typography>
         </ListItem>
         <ListItem>
-            <Typography className={classes.headerSubtext} component="p">
+            <Typography color="secondary" className={classes.headerSubtext} component="p">
             MENU
             </Typography>
         </ListItem>
